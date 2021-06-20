@@ -105,7 +105,7 @@ static void pcAttackNpcs(CNSocket *sock, CNPacketData *data) {
 
 
         BaseNPC* npc = NPCManager::NPCs[targets[i]];
-        if (npc->type != EntityType::MOB) {
+        if (npc->kind != EntityType::MOB) {
             std::cout << "[WARN] pcAttackNpcs: NPC is not a mob" << std::endl;
             return;
         }
@@ -477,7 +477,7 @@ static void pcAttackChars(CNSocket *sock, CNPacketData *data) {
             }
 
             BaseNPC* npc = NPCManager::NPCs[pktdata[i * 2]];
-            if (npc->type != EntityType::MOB) {
+            if (npc->kind != EntityType::MOB) {
                 std::cout << "[WARN] pcAttackChars: NPC is not a mob" << std::endl;
                 return;
             }
@@ -687,7 +687,7 @@ static void projectileHit(CNSocket* sock, CNPacketData* data) {
         }
 
         BaseNPC* npc = NPCManager::NPCs[pktdata[i]];
-        if (npc->type != EntityType::MOB) {
+        if (npc->kind != EntityType::MOB) {
             std::cout << "[WARN] projectileHit: NPC is not a mob" << std::endl;
             return;
         }
