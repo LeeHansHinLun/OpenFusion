@@ -11,7 +11,7 @@
 
 #define PC_MAXHEALTH(level) (925 + 75 * (level))
 
-struct Player : public Entity {
+struct Player : public Entity, public ICombatant {
     int accountId = 0;
     int accountLevel = 0; // permission level (see CN_ACCOUNT_LEVEL enums)
     int64_t SerialKey = 0;
@@ -91,6 +91,10 @@ struct Player : public Entity {
 
     virtual void enterIntoViewOf(CNSocket *sock) override;
     virtual void disappearFromViewOf(CNSocket *sock) override;
+
+    virtual void takeDamage(EntityRef src, int amt) override;
+    virtual void heal(EntityRef src, int amt) override;
+    virtual bool isAlive() override;
 
     sPCAppearanceData getAppearanceData();
 };
