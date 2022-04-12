@@ -79,9 +79,11 @@ public:
     ICombatant() {}
     virtual ~ICombatant() {}
 
-    virtual void takeDamage(EntityRef, int) = 0;
+    virtual int takeDamage(EntityRef, int) = 0;
     virtual void heal(EntityRef, int) = 0;
     virtual bool isAlive() = 0;
+    virtual int getCurrentHP() = 0;
+    virtual int32_t getID() = 0;
 };
 
 /*
@@ -137,9 +139,11 @@ struct CombatNPC : public BaseNPC, public ICombatant {
 
     virtual bool isExtant() override { return hp > 0; }
 
-    virtual void takeDamage(EntityRef src, int amt) override;
+    virtual int takeDamage(EntityRef src, int amt) override;
     virtual void heal(EntityRef src, int amt) override;
     virtual bool isAlive() override;
+    virtual int getCurrentHP() override;
+    virtual int32_t getID() override;
 };
 
 // Mob is in MobAI.hpp, Player is in Player.hpp
