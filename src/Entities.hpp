@@ -15,6 +15,14 @@ enum class EntityType : uint8_t {
     BUS
 };
 
+enum class AIState {
+    INACTIVE,
+    ROAMING,
+    COMBAT,
+    RETREAT,
+    DEAD
+};
+
 class Chunk;
 
 struct Entity {
@@ -124,6 +132,8 @@ struct CombatNPC : public BaseNPC, public ICombatant {
     int spawnZ = 0;
     int level = 0;
     int speed = 300;
+    AIState state = AIState::INACTIVE;
+    int playersInView = 0; // for optimizing away AI in empty chunks
 
     CombatNPC(int x, int y, int z, int angle, uint64_t iID, int t, int id, int maxHP)
         : BaseNPC(angle, iID, t, id), maxHealth(maxHP) {
@@ -139,12 +149,16 @@ struct CombatNPC : public BaseNPC, public ICombatant {
     virtual bool isAlive() override;
     virtual int getCurrentHP() override;
     virtual int32_t getID() override;
+
     virtual void step(time_t currTime) override;
+    virtual void roamingStep(time_t currTime) {} // no-op by default
+    virtual void combatStep(time_t currTime) {}
+    virtual void retreatStep(time_t currTime) {}
+    virtual void deadStep(time_t currTime) {}
 };
 
 // Mob is in MobAI.hpp, Player is in Player.hpp
 
-// TODO: decouple from BaseNPC
 struct Egg : public BaseNPC {
     bool summoned = false;
     bool dead = false;
@@ -162,7 +176,6 @@ struct Egg : public BaseNPC {
     virtual void disappearFromViewOf(CNSocket *sock) override;
 };
 
-// TODO: decouple from BaseNPC
 struct Bus : public BaseNPC {
     Bus(int angle, uint64_t iID, int t, int id) :
         BaseNPC(angle, iID, t, id) {
