@@ -106,7 +106,6 @@ public:
     int hp;
     int angle;
     int cbf;
-    int barkerType;
     bool loopingPath = false;
 
     BaseNPC(int _A, uint64_t iID, int t, int _id) {
@@ -114,7 +113,6 @@ public:
         hp = 400;
         angle = _A;
         cbf = 0;
-        barkerType = 0;
         id = _id;
         instanceID = iID;
     };
