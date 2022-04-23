@@ -24,6 +24,7 @@ enum class AIState {
 };
 
 class Chunk;
+struct Group;
 
 struct Entity {
     EntityKind kind = EntityKind::INVALID;
@@ -129,6 +130,7 @@ struct CombatNPC : public BaseNPC, public ICombatant {
     int level = 0;
     int speed = 300;
     AIState state = AIState::INACTIVE;
+    Group* group = nullptr;
     int playersInView = 0; // for optimizing away AI in empty chunks
 
     std::map<AIState, void (*)(CombatNPC*, time_t)> stateHandlers;

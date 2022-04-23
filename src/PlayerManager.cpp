@@ -46,7 +46,7 @@ void PlayerManager::removePlayer(CNSocket* key) {
     Player* plr = getPlayer(key);
     uint64_t fromInstance = plr->instanceID;
 
-    Groups::groupKickPlayer(plr);
+    Groups::groupKick(plr);
 
     // remove player's bullets
     Combat::Bullets.erase(plr->iID);
@@ -199,9 +199,6 @@ static void enterPlayer(CNSocket* sock, CNPacketData* data) {
 
     // TODO: check if serialkey exists, if it doesn't send sP_FE2CL_REP_PC_ENTER_FAIL
     Player plr = CNSharedData::getPlayer(enter->iEnterSerialKey);
-
-    plr.groupCnt = 1;
-    plr.iIDGroup = plr.groupIDs[0] = plr.iID;
 
     DEBUGLOG(
         std::cout << "P_CL2FE_REQ_PC_ENTER:" << std::endl;
@@ -450,9 +447,8 @@ static void revivePlayer(CNSocket* sock, CNPacketData* data) {
     resp2.PCRegenDataForOtherPC.iHP = plr->HP;
     resp2.PCRegenDataForOtherPC.iAngle = plr->angle;
 
-    Player *otherPlr = getPlayerFromID(plr->iIDGroup);
-    if (otherPlr != nullptr) {
-        int bitFlag = Groups::getGroupFlags(otherPlr);
+    if (plr->group != nullptr) {
+        int bitFlag = plr->group->conditionBitFlag;
         resp2.PCRegenDataForOtherPC.iConditionBitFlag = plr->iConditionBitFlag = plr->iSelfConditionBitFlag | bitFlag;
 
         resp2.PCRegenDataForOtherPC.iPCState = plr->iPCState;
