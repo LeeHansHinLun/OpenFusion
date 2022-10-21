@@ -10,11 +10,20 @@
 
 #include "Player.hpp"
 
-namespace CNSharedData {
-    // serialkey corresponds to player data
-    extern std::map<int64_t, Player> players;
+/*
+ * Connecions time out after 15 minutes, checked every 30 seconds.
+ */
+#define CNSHARED_TIMEOUT 900000
+#define CNSHARED_PERIOD 30000
 
-    void setPlayer(int64_t sk, Player& plr);
-    Player getPlayer(int64_t sk);
-    void erasePlayer(int64_t sk);
+struct LoginMetadata {
+    uint64_t FEKey;
+    Player plr;
+    time_t timestamp;
+};
+
+namespace CNShared {
+    void storeLoginMetadata(int64_t sk, LoginMetadata *lm);
+    LoginMetadata* getLoginMetadata(int64_t sk);
+    void pruneLoginMetadata(CNServer *serv, time_t currTime);
 }

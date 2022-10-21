@@ -19,6 +19,17 @@ CNLoginServer::CNLoginServer(uint16_t p) {
 void CNLoginServer::handlePacket(CNSocket* sock, CNPacketData* data) {
     printPacket(data);
 
+    if (loginSessions.find(sock) == loginSessions.end() &&
+        data->type != P_CL2LS_REQ_LOGIN && data->type != P_CL2LS_REP_LIVE_CHECK) {
+
+        if (settings::VERBOSITY > 0) {
+            std::cerr << "OpenFusion: LOGIN PKT OUT-OF-SEQ. PacketType: " <<
+                Packets::p2str(data->type) << " (" << data->type << ")" << std::endl;
+        }
+
+        return;
+    }
+
     switch (data->type) {
         case P_CL2LS_REQ_LOGIN: {
             login(sock, data);
@@ -133,8 +144,12 @@ void CNLoginServer::login(CNSocket* sock, CNPacketData* data) {
     Database::findAccount(&findUser, userLogin);
     
     // account was not found
-    if (findUser.AccountID == 0)
-        return newAccount(sock, userLogin, userPassword, login->iClientVerC);
+    if (findUser.AccountID == 0) {
+        if (settings::AUTOCREATEACCOUNTS)
+            return newAccount(sock, userLogin, userPassword, login->iClientVerC);
+
+        return loginFail(LoginError::ID_DOESNT_EXIST, userLogin, sock);
+    }
 
     if (!CNLoginServer::isPasswordCorrect(findUser.Password, userPassword))
         return loginFail(LoginError::ID_AND_PASSWORD_DO_NOT_MATCH, userLogin, sock);
@@ -453,21 +468,24 @@ void CNLoginServer::characterSelect(CNSocket* sock, CNPacketData* data) {
     resp.g_FE_ServerIP[strlen(shard_ip)] = '\0';
     resp.g_FE_ServerPort = settings::SHARDPORT;
 
-    // pass player to CNSharedData
-    Player passPlayer = {};
-    Database::getPlayer(&passPlayer, selection->iPC_UID);
+    LoginMetadata *lm = new LoginMetadata();
+    lm->FEKey = sock->getFEKey();
+    lm->timestamp = getTime();
+
+    Database::getPlayer(&lm->plr, selection->iPC_UID);
     // this should never happen but for extra safety
-    if (passPlayer.iID == 0)
+    if (lm->plr.iID == 0)
         return invalidCharacter(sock);
 
-    passPlayer.FEKey = sock->getFEKey();
-    resp.iEnterSerialKey = passPlayer.iID;
-    CNSharedData::setPlayer(resp.iEnterSerialKey, passPlayer);
+    resp.iEnterSerialKey = Rand::cryptoRand();
+
+    // transfer ownership of connection data to CNShared
+    CNShared::storeLoginMetadata(resp.iEnterSerialKey, lm);
 
     sock->sendPacket(resp, P_LS2CL_REP_SHARD_SELECT_SUCC);
 
     // update current slot in DB
-    Database::updateSelected(loginSessions[sock].userID, passPlayer.slot);
+    Database::updateSelected(loginSessions[sock].userID, lm->plr.slot);
 }
 
 void CNLoginServer::finishTutorial(CNSocket* sock, CNPacketData* data) {
